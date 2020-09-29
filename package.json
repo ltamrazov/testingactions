@@ -1,0 +1,31 @@
+{
+  "name": "testingactions",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rm -rf build/*",
+    "compile": "tsc",
+    "test": "jest build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ltamrazov/testingactions.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ltamrazov/testingactions/issues"
+  },
+  "homepage": "https://github.com/ltamrazov/testingactions#readme",
+  "dependencies": {
+    "jest": "^26.4.2",
+    "pg": "^8.3.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.14",
+    "@types/pg": "^7.14.5",
+    "typescript": "^4.0.3"
+  }
+}
