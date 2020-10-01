@@ -65,7 +65,7 @@ jobs:
     
     - name: Run DB
       run: |
-        docker run -e "POSTGRES_USER=root" -e "POSTGRES_PASSWORD=root" -e "PGPASSWORD=root" -p -d 5432:5432 db-${{ steps.generate_tag.outputs.tag }}
+        docker run -e "POSTGRES_USER=root" -e "POSTGRES_PASSWORD=root" -e "PGPASSWORD=root" -p 5432:5432 -d db-${{ steps.generate_tag.outputs.tag }}
         ./scripts/wait-for localhost:5432
 
     - name: Test the Build Image
