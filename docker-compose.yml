@@ -29,7 +29,6 @@ services:
       restart: always
       volumes:
         - postgresdata:/var/lib/postgresql/data/pgdata:Z
-        - ./db_install/docker-entrypoint-initdb.d/.:/docker-entrypoint-initdb.d:Z
       working_dir: /usr/src/service
       environment:
         POSTGRES_USER: root
