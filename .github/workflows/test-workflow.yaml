@@ -17,7 +17,7 @@ jobs:
       uses: docker/setup-buildx-action@v1
       id: main_builder
     
-    - name: Builder for the main image
+    - name: Builder for the db image
       uses: docker/setup-buildx-action@v1
       id: db_builder
 
@@ -58,7 +58,10 @@ jobs:
       with:
         builder: ${{ steps.db_builder.outputs.name }}
         file: Dockerfile.postgres
-        tag: db-${{ steps.generate_tag.outputs.tag }}
+        load: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache
+        tags: db-${{ steps.generate_tag.outputs.tag }}
     
     - name: Run DB
       run: |
