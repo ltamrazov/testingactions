@@ -9,6 +9,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+        postgres:
+          image: Dockerfile.postgres
+          ports:
+            - 5432:5432
     steps:
     - name: Setup QEMU
       uses: docker/setup-qemu-action@v1

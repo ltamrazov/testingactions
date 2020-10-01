@@ -19,8 +19,6 @@ describe('TestSuite', () => {
         done()
     })
     it('should connect to postgres', async (done) => {
-
-
         const client = await pool.connect()
         expect(client).toBeDefined()
         done()
