@@ -34,13 +34,14 @@ jobs:
           then
               _tag=pr-${{ github.event.number }}
           fi
-          _full=ldmx/dev:${_tag}
+          _full=test/dev:${_tag}
           echo ::set-output name=tag::${_full}
 
     - name: Build Image
       uses: docker/build-push-action@v2
       with:
         push: false
+        target: test
         load: true
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache
