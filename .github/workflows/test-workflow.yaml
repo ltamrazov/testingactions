@@ -65,10 +65,10 @@ jobs:
     
     - name: Run DB
       run: |
-        docker run db-${{ steps.generate_tag.outputs.tag }} -e POSTGRES_USER=root -e POSTGRES_PASSWORD=root -e PGPASSWORD=root -p 5432:5432
+        docker run -e "POSTGRES_USER=root" -e "POSTGRES_PASSWORD=root" -e "PGPASSWORD=root" -p -d 5432:5432 db-${{ steps.generate_tag.outputs.tag }}
         ./scripts/wait-for localhost:5432
 
     - name: Test the Build Image
       run: |
         _image=${{ steps.generate_tag.outputs.tag }}
-        docker run $_image -e DATABASE_USER=root -e DATABASE_PASSWORD=root -e DATABASE_NAME=test -e DATABASE_PORT=5432 -e DATABASE_HOST=localhost
+        docker run -e DATABASE_USER=root -e DATABASE_PASSWORD=root -e DATABASE_NAME=test -e DATABASE_PORT=5432 -e DATABASE_HOST=localhost $_image
