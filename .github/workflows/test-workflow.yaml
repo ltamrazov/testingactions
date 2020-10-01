@@ -9,17 +9,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-        postgres:
-          image: Dockerfile.postgres
-          ports:
-            - 5432:5432
     steps:
     - name: Setup QEMU
       uses: docker/setup-qemu-action@v1
 
-    - name: Set up Docker Buildx
+    - name: Builder for the main image
       uses: docker/setup-buildx-action@v1
+      id: main_builder
+    
+    - name: Builder for the main image
+      uses: docker/setup-buildx-action@v1
+      id: db_builder
 
     - name: Cache Docker layers
       uses: actions/cache@v2
@@ -42,17 +42,30 @@ jobs:
           _full=test/dev:${_tag}
           echo ::set-output name=tag::${_full}
 
-    - name: Build Image
+    - name: Build code
       uses: docker/build-push-action@v2
       with:
+        builder: ${{ steps.main_builder.outputs.name }}
         push: false
         target: test
         load: true
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache
         tags: ${{ steps.generate_tag.outputs.tag }}
+    
+    - name: Build DB
+      uses: docker/build-push-action@v2
+      with:
+        builder: ${{ steps.db_builder.outputs.name }}
+        file: Dockerfile.postgres
+        tag: db-${{ steps.generate_tag.outputs.tag }}
+    
+    - name: Run DB
+      run: |
+        docker run db-${{ steps.generate_tag.outputs.tag }} -e POSTGRES_USER=root -e POSTGRES_PASSWORD=root -e PGPASSWORD=root -p 5432:5432
+        ./scripts/wait-for localhost:5432
 
     - name: Test the Build Image
       run: |
         _image=${{ steps.generate_tag.outputs.tag }}
-        docker run $_image
+        docker run $_image -e DATABASE_USER=root -e DATABASE_PASSWORD=root -e DATABASE_NAME=test -e DATABASE_PORT=5432 -e DATABASE_HOST=localhost
