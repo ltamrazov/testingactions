@@ -45,6 +45,7 @@ jobs:
         builder: ${{ steps.buildx.outputs.name }}
         push: false
         target: test
+        load: true
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
         tags: ${{ steps.generate_tag.outputs.tag }}
@@ -54,6 +55,7 @@ jobs:
       with:
         builder: ${{ steps.buildx.outputs.name }}
         file: Dockerfile.postgres
+        load: true
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
         tags: db-${{ steps.generate_tag.outputs.tag }}
