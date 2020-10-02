@@ -2,4 +2,4 @@ FROM postgres:11.6
 
 RUN apt-get update -y && apt-get install postgis postgresql-11-postgis-2.5 -y
 
-COPY db_install/docker-entrypoint-initdb.d .
+COPY db_install/docker-entrypoint-initdb.d docker-entrypoint-initdb.d

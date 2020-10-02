@@ -63,12 +63,8 @@ jobs:
         cache-to: type=local,dest=/tmp/.buildx-cache
         tags: db-${{ steps.generate_tag.outputs.tag }}
     
-    - name: Run DB
+    - name: Run Tests
       run: |
-        docker run -e "POSTGRES_USER=root" -e "POSTGRES_PASSWORD=root" -e "PGPASSWORD=root" -p 5432:5432 -d db-${{ steps.generate_tag.outputs.tag }}
-        ./scripts/wait-for localhost:5432
-
-    - name: Test the Build Image
-      run: |
-        _image=${{ steps.generate_tag.outputs.tag }}
-        docker run -e DATABASE_USER=root -e DATABASE_PASSWORD=root -e DATABASE_NAME=test -e DATABASE_PORT=5432 -e DATABASE_HOST=localhost $_image
+        API_IMAGE_TAG=${{ steps.generate_tag.outputs.tag }}
+        DB_IMAGE_TAG=db-${{ steps.generate_tag.outputs.tag }}
+        docker-compose -f docker-compose.yml --env-file .env.ci run test-api
