@@ -38,7 +38,7 @@ RUN apk add netcat-openbsd
 
 WORKDIR /app
 
-ENTRYPOINT [ "./scripts/wait-for", "test-db:5432", "&&", "npm", "run", "dev" ]
+ENTRYPOINT [ "sh", "-c", "./scripts/wait-for test-db:5432 && npm run dev" ]
 
 # release builds from a lighter node image and copies stuff over
 # from tested build
