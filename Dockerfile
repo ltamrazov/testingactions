@@ -29,6 +29,7 @@ RUN chmod -R u+x scripts
 
 RUN npm run build
 
+ENTRYPOINT [ "sh", "-c", "./scripts/wait-for test-db:5432 && npm run test" ]
 
 # dev adds an additional dependencies needed for container management
 # in our dev environment
@@ -37,6 +38,7 @@ RUN apk add netcat-openbsd
 
 WORKDIR /app
 
+ENTRYPOINT [ "sh", "-c", "./scripts/wait-for test-db:5432 && npm run dev" ]
 
 # release builds from a lighter node image and copies stuff over
 # from tested build

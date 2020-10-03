@@ -6,36 +6,26 @@ volumes:
 
 services:
     test-api:
-      container_name: actions-api
-      build: 
+      image: ${API_IMAGE_TAG:-api}
+      build:
         context: .
-        target: dev
-      env_file:
-        - .env
-      volumes:
-        - ./src:/app/src:z
-        - ./package.json:/app/package.json:z
-        - ./tsconfig.json:/app/tsconfig.json:z
-        - ./jest.config.js:/app/jest.config.js:z
-        - ./build:/app/build:z
-      command: sh -c "./scripts/wait-for test-db:5432 && npm run build && npm run test"
+        target: test
       depends_on: 
         - test-db
+      environment:
+        - DATABASE_USER
+        - DATABASE_PASSWORD
+        - DATABASE_NAME
+        - DATABASE_PORT
+        - DATABASE_HOST
     test-db:
+      image: ${DB_IMAGE_TAG:-db}
       container_name: actions-db
       build:
         context: .
-        dockerfile: Dockerfile.postgres
-      restart: always
-      volumes:
-        - postgresdata:/var/lib/postgresql/data/pgdata:Z
-        - ./db_install/docker-entrypoint-initdb.d/.:/docker-entrypoint-initdb.d:Z
-      working_dir: /usr/src/service
+        dockerfile: Dockerfile.postgres   
       environment:
-        POSTGRES_USER: root
-        POSTGRES_PASSWORD: root
-        PGPASSWORD: root
-        PGDATA: /var/lib/postgresql/data/pgdata
-      ports:
-        - 5433:5432
-      # command: ["postgres", "-c", "log_statement=all"]
+        - POSTGRES_USER
+        - POSTGRES_PASSWORD
+        - PGPASSWORD
+        - PGDATA

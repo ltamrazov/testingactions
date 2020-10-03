@@ -1,0 +1,23 @@
+version: '3.7'
+
+volumes:
+  postgresdata:
+      external: false
+
+services:
+    test-api:
+      container_name: actions-api
+      volumes:
+        - ./src:/app/src:z
+        - ./package.json:/app/package.json:z
+        - ./tsconfig.json:/app/tsconfig.json:z
+        - ./jest.config.js:/app/jest.config.js:z
+        - ./build:/app/build:z
+      build:
+        target: dev
+    test-db:
+      restart: always
+      volumes:
+        - postgresdata:/var/lib/postgresql/data/pgdata:Z
+      ports:
+        - 5433:5432

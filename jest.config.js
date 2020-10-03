@@ -1,8 +1,5 @@
 module.exports = {
     moduleFileExtensions: ['js', 'json'],
-    rootDirs: [
-        "<rootDir>/build"
-    ],
     testMatch: [
         "**/?(*.)+(spec|test).+(js)"
     ],
