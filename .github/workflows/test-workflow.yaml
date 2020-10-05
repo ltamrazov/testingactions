@@ -17,7 +17,15 @@ jobs:
     - name: Cache main image layers
       uses: actions/cache@v2
       with:
-        path: /tmp/.buildx-cache
+        path: /tmp/.buildx-cache/main
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+    
+    - name: Cache db image layers
+      uses: actions/cache@v2
+      with:
+        path: /tmp/.buildx-cache/db
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -43,8 +51,8 @@ jobs:
         push: false
         target: test
         load: true
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
+        cache-from: type=local,src=/tmp/.buildx-cache/main
+        cache-to: type=local,mode=max,dest=/tmp/.buildx-cache/main
         tags: ${{ steps.generate_tag.outputs.tag }}
     
     - name: Build DB
@@ -53,8 +61,8 @@ jobs:
         builder: ${{ steps.buildx.outputs.name }}
         file: Dockerfile.postgres
         load: true
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
+        cache-from: type=local,src=/tmp/.buildx-cache/db
+        cache-to: type=local,mode=max,dest=/tmp/.buildx-cache/db
         tags: db-${{ steps.generate_tag.outputs.tag }}
     
     - name: Run Tests
