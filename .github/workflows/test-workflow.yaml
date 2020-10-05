@@ -11,8 +11,6 @@ env:
     MAIN_CACHE: /tmp/.buildx-cache/main
 jobs:
   build:
-    env:
-      DB_CACHE: asdf
     runs-on: ubuntu-latest
     steps:
     - name: Builder
@@ -22,7 +20,7 @@ jobs:
     - name: Cache main image layers
       uses: actions/cache@v2
       with:
-        path: ${{ MAIN_CACHE }}
+        path: ${{ env.MAIN_CACHE }}
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -30,7 +28,7 @@ jobs:
     - name: Cache db image layers
       uses: actions/cache@v2
       with:
-        path: ${{ DB_CACHE }}
+        path: ${{ env.DB_CACHE }}
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -56,8 +54,8 @@ jobs:
         push: false
         target: build
         load: true
-        cache-from: type=local,src=${{ MAIN_CACHE }}
-        cache-to: type=local,mode=max,dest=${{ MAIN_CACHE }}
+        cache-from: type=local,src=${{ env.MAIN_CACHE }}
+        cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE }}
         tags: ${{ steps.generate_tag.outputs.tag }}
     
     - name: Build DB
@@ -66,8 +64,8 @@ jobs:
         builder: ${{ steps.buildx.outputs.name }}
         file: Dockerfile.postgres
         load: true
-        cache-from: type=local,src=${{ DB_CACHE }}
-        cache-to: type=local,mode=max,dest=${{ DB_CACHE }}
+        cache-from: type=local,src=${{ env.DB_CACHE }}
+        cache-to: type=local,mode=max,dest=${{ env.DB_CACHE }}
         tags: db-${{ steps.generate_tag.outputs.tag }}
     
     - name: Run Tests
@@ -85,7 +83,7 @@ jobs:
     - name: Restore cache
       uses: actions/cache@v2
       with:
-        path: ${{ MAIN_CACHE }}
+        path: ${{ env.MAIN_CACHE }}
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -97,8 +95,8 @@ jobs:
         push: true
         target: release
         load: true
-        cache-from: type=local,src=${{ MAIN_CACHE }}
-        cache-to: type=local,mode=max,dest=${{ MAIN_CACHE }}
+        cache-from: type=local,src=${{ env.MAIN_CACHE }}
+        cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE }}
         tags: ${{ steps.generate_tag.outputs.tag }}
         username: ${{github.actor}}
         password: ${{secrets.GITHUB_TOKEN}}
