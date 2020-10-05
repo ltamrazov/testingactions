@@ -1,1 +1,1 @@
-console.log('RUNNING DEV SERVER')
+console.log('RUNNING DEVelopment SERVER')
