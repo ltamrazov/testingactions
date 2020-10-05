@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "prod": "node build/index.js",
     "build": "npm run clean && npm run compile",
     "clean": "rm -rf build/*",
     "compile": "tsc",

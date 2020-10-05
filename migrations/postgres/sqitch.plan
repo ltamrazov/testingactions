@@ -1,0 +1,4 @@
+%syntax-version=1.0.0
+%project=postgres
+
+create_darth_vader_role 2020-01-21T22:26:06Z Fatmir Sukaliq <sukaliqfatmir@gmail.com> # this will create the darth vader role

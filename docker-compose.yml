@@ -9,7 +9,7 @@ services:
       image: ${API_IMAGE_TAG:-api}
       build:
         context: .
-        target: test
+        target: build
       depends_on: 
         - test-db
       environment:

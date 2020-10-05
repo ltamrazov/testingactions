@@ -6,8 +6,13 @@ on:
     pull_request:
         branches: [ master ]
 
+env:
+    DB_CACHE: /tmp/.buildx-cache/db
+    MAIN_CACHE: /tmp/.buildx-cache/main
 jobs:
-  test:
+  build:
+    env:
+      DB_CACHE: asdf
     runs-on: ubuntu-latest
     steps:
     - name: Builder
@@ -17,7 +22,7 @@ jobs:
     - name: Cache main image layers
       uses: actions/cache@v2
       with:
-        path: /tmp/.buildx-cache/main
+        path: ${{ MAIN_CACHE }}
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -25,7 +30,7 @@ jobs:
     - name: Cache db image layers
       uses: actions/cache@v2
       with:
-        path: /tmp/.buildx-cache/db
+        path: ${{ DB_CACHE }}
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -36,12 +41,12 @@ jobs:
     - name: Determine Image Tag
       id: generate_tag
       run: |
-          _tag=latest
+          _tag=${{ github.sha }}
           if [ "${{ github.event_name }}" == "pull_request" ]
           then
               _tag=pr-${{ github.event.number }}
           fi
-          _full=test/dev:${_tag}
+          _full=api:${_tag}
           echo ::set-output name=tag::${_full}
 
     - name: Build code
@@ -49,10 +54,10 @@ jobs:
       with:
         builder: ${{ steps.buildx.outputs.name }}
         push: false
-        target: test
+        target: build
         load: true
-        cache-from: type=local,src=/tmp/.buildx-cache/main
-        cache-to: type=local,mode=max,dest=/tmp/.buildx-cache/main
+        cache-from: type=local,src=${{ MAIN_CACHE }}
+        cache-to: type=local,mode=max,dest=${{ MAIN_CACHE }}
         tags: ${{ steps.generate_tag.outputs.tag }}
     
     - name: Build DB
@@ -61,10 +66,41 @@ jobs:
         builder: ${{ steps.buildx.outputs.name }}
         file: Dockerfile.postgres
         load: true
-        cache-from: type=local,src=/tmp/.buildx-cache/db
-        cache-to: type=local,mode=max,dest=/tmp/.buildx-cache/db
+        cache-from: type=local,src=${{ DB_CACHE }}
+        cache-to: type=local,mode=max,dest=${{ DB_CACHE }}
         tags: db-${{ steps.generate_tag.outputs.tag }}
     
     - name: Run Tests
       run: |
         API_IMAGE_TAG=${{ steps.generate_tag.outputs.tag }} DB_IMAGE_TAG=db-${{ steps.generate_tag.outputs.tag }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api
+  
+  push-container:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Builder
+      uses: docker/setup-buildx-action@v1
+      id: buildx
+
+    - name: Restore cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ MAIN_CACHE }}
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+    
+    - name: Build code
+      uses: docker/build-push-action@v2
+      with:
+        builder: ${{ steps.buildx.outputs.name }}
+        push: true
+        target: release
+        load: true
+        cache-from: type=local,src=${{ MAIN_CACHE }}
+        cache-to: type=local,mode=max,dest=${{ MAIN_CACHE }}
+        tags: ${{ steps.generate_tag.outputs.tag }}
+        username: ${{github.actor}}
+        password: ${{secrets.GITHUB_TOKEN}}
+        registry: docker.pkg.github.com
+        repository: ltamrazov/testingactions
