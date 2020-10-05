@@ -11,7 +11,7 @@ env:
     MAIN_CACHE: /tmp/.buildx-cache/main
     IMAGE_TAG: ""
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
     steps:
     - name: Builder
@@ -74,7 +74,7 @@ jobs:
       run: |
         API_IMAGE_TAG=${{ steps.generate_tag.outputs.tag }} DB_IMAGE_TAG=db-${{ steps.generate_tag.outputs.tag }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api
   
-  push-container:
+  push-image:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
@@ -117,4 +117,4 @@ jobs:
         target: release
         cache-from: type=local,src=${{ env.MAIN_CACHE }}
         cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE }}
-        tags: ${{ steps.generate_tag.outputs.tag }}
+        tags: ghcr.io/${{ steps.generate_tag.outputs.tag }}
