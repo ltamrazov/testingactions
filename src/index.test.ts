@@ -12,6 +12,7 @@ describe('TestSuite', () => {
 
     const pool = new pg.Pool(config)
     let client: pg.PoolClient
+    console.log("yoyoyoyo")
 
     beforeAll(async(done) => {
         client = await pool.connect()
@@ -25,6 +26,11 @@ describe('TestSuite', () => {
     })
 
     it('should connect to postgres', async (done) => {
+        expect(client).toBeDefined()
+        done()
+    })
+
+    it('should connect to postgres again', async (done) => {
         expect(client).toBeDefined()
         done()
     })
