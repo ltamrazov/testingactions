@@ -94,7 +94,6 @@ jobs:
         builder: ${{ steps.buildx.outputs.name }}
         push: true
         target: release
-        load: true
         cache-from: type=local,src=${{ env.MAIN_CACHE }}
         cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE }}
         tags: ${{ steps.generate_tag.outputs.tag }}
