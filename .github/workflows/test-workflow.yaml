@@ -21,17 +21,17 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.MAIN_CACHE }}
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        key: ${{ runner.os }}-buildx-main-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-buildx-
+          ${{ runner.os }}-buildx-main-
     
     - name: Cache db image layers
       uses: actions/cache@v2
       with:
         path: ${{ env.DB_CACHE }}
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        key: ${{ runner.os }}-buildx-db-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-buildx-
+          ${{ runner.os }}-buildx-db-
 
     - name: Checkout Code
       uses: actions/checkout@v2
@@ -92,9 +92,9 @@ jobs:
       uses: actions/cache@v2
       with:
         path: /tmp/.buildx-cache/release
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        key: ${{ runner.os }}-buildx-release-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-buildx-
+          ${{ runner.os }}-buildx-release-
     
 
     - name: Login to GitHub Container Registry
