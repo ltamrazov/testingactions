@@ -39,10 +39,12 @@ jobs:
     - name: Temp tags
       id: tmpimg
       run: |
-        echo ::set-output name=mainimg::${main-$GITHUB_SHA}
-        echo ::set-output name=dbimg::${db-$GITHUB_SHA}
+        MAIN_TAG="main-$GITHUB_SHA"
+        DB_TAG="db-$GITHUB_SHA"
+        echo ::set-output name=mainimg::${MAIN_TAG}
+        echo ::set-output name=dbimg::${DB_TAG}
 
-    - name: Build code
+    - name: Build source
       uses: docker/build-push-action@v2
       with:
         builder: ${{ steps.buildx.outputs.name }}
