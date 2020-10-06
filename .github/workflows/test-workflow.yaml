@@ -69,6 +69,7 @@ jobs:
         API_IMAGE_TAG=${{ steps.tmpimg.outputs.mainimg }} DB_IMAGE_TAG=${{ steps.tmpimg.outputs.dbimg }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api
   
   push-image:
+    if: contains(github.event.pull_request.labels.*.name, 'stage')
     env:
       CACHE_PATH: /tmp/.buildx-cache/release
     needs: [build-test]
