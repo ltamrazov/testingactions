@@ -19,7 +19,7 @@ jobs:
     - name: Prepare
       id: prep
       run: |
-        DOCKER_IMAGE=ghcr.io/${{ github.repository_owner }}/${{github.repository}}/api
+        DOCKER_IMAGE=ghcr.io/${{ github.repository }}/api
         SHA="sha-${GITHUB_SHA::8}"
         if [[ $GITHUB_REF == refs/pull/* ]]; then
           TAGS="$DOCKER_IMAGE:pr-${{ github.event.number }}-$SHA"
