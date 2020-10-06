@@ -11,71 +11,70 @@ env:
     MAIN_CACHE: /tmp/.buildx-cache/main
     IMAGE_TAG: ""
 jobs:
-  build-test:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Builder
-      uses: docker/setup-buildx-action@v1
-      id: buildx
+  # build-test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Builder
+  #     uses: docker/setup-buildx-action@v1
+  #     id: buildx
 
-    - name: Cache main image layers
-      uses: actions/cache@v2
-      with:
-        path: ${{ env.MAIN_CACHE }}
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-
+  #   - name: Cache main image layers
+  #     uses: actions/cache@v2
+  #     with:
+  #       path: ${{ env.MAIN_CACHE }}
+  #       key: ${{ runner.os }}-buildx-${{ github.sha }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-buildx-
     
-    - name: Cache db image layers
-      uses: actions/cache@v2
-      with:
-        path: ${{ env.DB_CACHE }}
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-
+  #   - name: Cache db image layers
+  #     uses: actions/cache@v2
+  #     with:
+  #       path: ${{ env.DB_CACHE }}
+  #       key: ${{ runner.os }}-buildx-${{ github.sha }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-buildx-
 
-    - name: Checkout Code
-      uses: actions/checkout@v2
+  #   - name: Checkout Code
+  #     uses: actions/checkout@v2
     
-    - name: Determine Image Tag
-      id: generate_tag
-      run: |
-          _tag=${{ github.sha }}
-          if [ "${{ github.event_name }}" == "pull_request" ]
-          then
-              _tag=pr-${{ github.event.number }}
-          fi
-          _full=api:${_tag}
-          echo ::set-output name=tag::${_full}
-          echo "IMAGE_TAG=${_full}" >> $GITHUB_ENV
+  #   - name: Determine Image Tag
+  #     id: generate_tag
+  #     run: |
+  #         _tag=${{ github.sha }}
+  #         if [ "${{ github.event_name }}" == "pull_request" ]
+  #         then
+  #             _tag=pr-${{ github.event.number }}
+  #         fi
+  #         _full=api:${_tag}
+  #         echo ::set-output name=tag::${_full}
+  #         echo "IMAGE_TAG=${_full}" >> $GITHUB_ENV
 
-    - name: Build code
-      uses: docker/build-push-action@v2
-      with:
-        builder: ${{ steps.buildx.outputs.name }}
-        push: false
-        target: build
-        load: true
-        cache-from: type=local,src=${{ env.MAIN_CACHE }}
-        cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE }}
-        tags: ${{ steps.generate_tag.outputs.tag }}
+  #   - name: Build code
+  #     uses: docker/build-push-action@v2
+  #     with:
+  #       builder: ${{ steps.buildx.outputs.name }}
+  #       push: false
+  #       target: build
+  #       load: true
+  #       cache-from: type=local,src=${{ env.MAIN_CACHE }}
+  #       cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE }}
+  #       tags: ${{ steps.generate_tag.outputs.tag }}
     
-    - name: Build DB
-      uses: docker/build-push-action@v2
-      with:
-        builder: ${{ steps.buildx.outputs.name }}
-        file: Dockerfile.postgres
-        load: true
-        cache-from: type=local,src=${{ env.DB_CACHE }}
-        cache-to: type=local,mode=max,dest=${{ env.DB_CACHE }}
-        tags: db-${{ steps.generate_tag.outputs.tag }}
+  #   - name: Build DB
+  #     uses: docker/build-push-action@v2
+  #     with:
+  #       builder: ${{ steps.buildx.outputs.name }}
+  #       file: Dockerfile.postgres
+  #       load: true
+  #       cache-from: type=local,src=${{ env.DB_CACHE }}
+  #       cache-to: type=local,mode=max,dest=${{ env.DB_CACHE }}
+  #       tags: db-${{ steps.generate_tag.outputs.tag }}
     
-    - name: Run Tests
-      run: |
-        API_IMAGE_TAG=${{ steps.generate_tag.outputs.tag }} DB_IMAGE_TAG=db-${{ steps.generate_tag.outputs.tag }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api
+  #   - name: Run Tests
+  #     run: |
+  #       API_IMAGE_TAG=${{ steps.generate_tag.outputs.tag }} DB_IMAGE_TAG=db-${{ steps.generate_tag.outputs.tag }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api
   
   push-image:
-    needs: [build-test]
     runs-on: ubuntu-latest
     steps:
     - name: Builder
