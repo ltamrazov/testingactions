@@ -1,18 +1,20 @@
 # Base is just light node config with common tools to building
 # for building npm packages
 FROM mhart/alpine-node:12.18.3 AS build
-# node_modules deps
-RUN apk add --no-cache python make g++ \
-    # sqitch
-    perl-utils perl-dev perl-dbd-pg perl-app-cpanminus postgresql-client && \
-    cpanm App::Sqitch --no-wget --notest --quiet
 
 ENV TZ UTC
+
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-RUN npm ci
+# node_modules deps
+RUN apk add --no-cache --virtual .build-deps python make g++ perl-dev \
+    # sqitch
+    apk add --no-cache perl-dbd-pg perl-app-cpanminus postgresql-client && \
+    cpanm App::Sqitch --no-wget --notest --quiet && \
+    npm ci && \
+    apk del .build-deps
 
 COPY . .
 

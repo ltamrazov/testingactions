@@ -6,32 +6,26 @@ on:
     pull_request:
         branches: [ master ]
 
+env:
+  BUILD_IMAGE: "ghcr.io/${{ github.repository_owner }}/${{github.repository}}/api-tmp:${{ github.sha }}"
+
 jobs:
-  build-test:
-    env:
-      DB_CACHE_PATH: /tmp/.buildx-cache/db
-      MAIN_CACHE_PATH: /tmp/.buildx-cache/main
+  build:
     runs-on: ubuntu-latest
+    env:
+      MAIN_CACHE_PATH: /tmp/.buildx-cache/main  
     steps:
     - name: Builder
       uses: docker/setup-buildx-action@v1
       id: buildx
 
-    - name: Cache main image layers
+    - name: Restore build cache
       uses: actions/cache@v2
       with:
         path: ${{ env.MAIN_CACHE_PATH }}
         key: ${{ runner.os }}-buildx-main-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-main-
-    
-    - name: Cache db image layers
-      uses: actions/cache@v2
-      with:
-        path: ${{ env.DB_CACHE_PATH }}
-        key: ${{ runner.os }}-buildx-db-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-db-
 
     - name: Checkout Code
       uses: actions/checkout@v2
@@ -44,16 +38,37 @@ jobs:
         echo ::set-output name=mainimg::${MAIN_TAG}
         echo ::set-output name=dbimg::${DB_TAG}
 
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.DOCKER_PAT }}
+
     - name: Build source
       uses: docker/build-push-action@v2
       with:
         builder: ${{ steps.buildx.outputs.name }}
         target: build
-        load: true
+        push: true
         cache-from: type=local,src=${{ env.MAIN_CACHE_PATH }}
         cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE_PATH }}
-        tags: ${{ steps.tmpimg.outputs.mainimg }}
-    
+        tags: ${{ env.BUILD_IMAGE }}
+  
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      DB_CACHE_PATH: /tmp/.buildx-cache/db
+    steps:
+    - name: Cache db image layers
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.DB_CACHE_PATH }}
+        key: ${{ runner.os }}-buildx-db-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-db-
+
     - name: Build DB
       uses: docker/build-push-action@v2
       with:
@@ -63,8 +78,15 @@ jobs:
         cache-from: type=local,src=${{ env.DB_CACHE_PATH }}
         cache-to: type=local,mode=max,dest=${{ env.DB_CACHE_PATH }}
         tags: ${{ steps.tmpimg.outputs.dbimg }}
-    
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.DOCKER_PAT }}
+
     - name: Run Tests
       run: |
-        API_IMAGE_TAG=${{ steps.tmpimg.outputs.mainimg }} DB_IMAGE_TAG=${{ steps.tmpimg.outputs.dbimg }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api
+        API_IMAGE_TAG=${{ env.BUILD_IMAGE }} DB_IMAGE_TAG=${{ steps.tmpimg.outputs.dbimg }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api
   
