@@ -2,9 +2,9 @@
 # for building npm packages
 FROM mhart/alpine-node:12.18.3 AS build
 # node_modules deps
-RUN apk add --no-cache python make g++ && \
+RUN apk add --no-cache python make g++ \
     # sqitch
-    apk add --no-cache perl-utils perl-dev tzdata perl-dbd-pg perl-app-cpanminus postgresql-client && \
+    perl-utils perl-dev perl-dbd-pg perl-app-cpanminus postgresql-client && \
     cpanm App::Sqitch --no-wget --notest --quiet
 
 ENV TZ UTC
@@ -35,11 +35,10 @@ RUN npm prune --production
 
 FROM mhart/alpine-node:slim-12 as release
 
-RUN apk add --no-cache \ 
-    build-base perl-dev perl-dbd-pg perl-app-cpanminus
-
-RUN apk add --no-cache postgresql-client && \
-    cpanm App::Sqitch --no-wget --notest --quiet
+RUN apk add --no-cache --virtual .build-deps build-base perl-dev  && \
+    apk add --no-cache postgresql-client perl-app-cpanminus perl-dbd-pg && \
+    cpanm App::Sqitch --no-wget --notest --quiet && \
+    apk del .build-deps
 
 ENV TZ UTC
 
@@ -49,3 +48,5 @@ COPY --from=build /app/build /app/build
 
 COPY --from=pre-release /app/package.json /app/package-lock.json ./
 COPY --from=pre-release /app/node_modules /app/node_modules
+
+COPY migrations migrations

@@ -6,15 +6,13 @@ volumes:
 
 services:
     test-api:
-      container_name: actions-api
       volumes:
         - ./src:/app/src:z
         - ./package.json:/app/package.json:z
         - ./tsconfig.json:/app/tsconfig.json:z
         - ./jest.config.js:/app/jest.config.js:z
         - ./build:/app/build:z
-      build:
-        target: dev
+        - ./migrations:/app/migrations:z
     test-db:
       restart: always
       volumes:
