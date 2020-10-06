@@ -68,7 +68,6 @@ jobs:
   #       API_IMAGE_TAG=${{ steps.tmpimg.outputs.mainimg }} DB_IMAGE_TAG=${{ steps.tmpimg.outputs.dbimg }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api
   
   push-image:
-    needs: [build-test]
     runs-on: ubuntu-latest
     steps:
     - name: Builder
