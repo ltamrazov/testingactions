@@ -20,7 +20,7 @@ jobs:
     - name: Cache main image layers
       uses: actions/cache@v2
       with:
-        path: ${{ env.build-test.MAIN_CACHE }}
+        path: ${{ env.MAIN_CACHE }}
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -28,7 +28,7 @@ jobs:
     - name: Cache db image layers
       uses: actions/cache@v2
       with:
-        path: ${{ env.build-test.DB_CACHE }}
+        path: ${{ env.DB_CACHE }}
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -50,8 +50,8 @@ jobs:
         builder: ${{ steps.buildx.outputs.name }}
         target: build
         load: true
-        cache-from: type=local,src=${{ env.build-test.MAIN_CACHE }}
-        cache-to: type=local,mode=max,dest=${{ env.build-test.MAIN_CACHE }}
+        cache-from: type=local,src=${{ env.MAIN_CACHE }}
+        cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE }}
         tags: ${{ steps.tmpimg.outputs.mainimg }}
     
     - name: Build DB
@@ -60,8 +60,8 @@ jobs:
         builder: ${{ steps.buildx.outputs.name }}
         file: Dockerfile.postgres
         load: true
-        cache-from: type=local,src=${{ env.build-test.DB_CACHE }}
-        cache-to: type=local,mode=max,dest=${{ env.build-test.DB_CACHE }}
+        cache-from: type=local,src=${{ env.DB_CACHE }}
+        cache-to: type=local,mode=max,dest=${{ env.DB_CACHE }}
         tags: ${{ steps.tmpimg.outputs.dbimg }}
     
     - name: Run Tests
