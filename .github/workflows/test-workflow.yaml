@@ -96,5 +96,26 @@ jobs:
 
     - name: Run Tests
       run: |
-        API_IMAGE_TAG=${{ env.BUILD_IMAGE }} DB_IMAGE_TAG=${{ env.DB_IMAGE_TAG }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api
+        API_IMAGE_TAG=${{ env.BUILD_IMAGE }} DB_IMAGE_TAG=${{ env.DB_IMAGE_TAG }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api sh -c "./scripts/wait-for test-db:5432 && npm run test"
   
+  lint:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.DOCKER_PAT }}
+    
+    - name: Pull build
+      run: docker pull ${{ env.BUILD_IMAGE }}
+
+    - name: Run Tests
+      run: |
+        API_IMAGE_TAG=${{ env.BUILD_IMAGE }} docker-compose -f docker-compose.yml --env-file .env.ci run -no-deps test-api sh -c "npm run lint"
+    

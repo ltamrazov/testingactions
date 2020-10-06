@@ -22,9 +22,6 @@ RUN chmod -R u+x scripts
 
 RUN npm run build
 
-ENTRYPOINT [ "sh", "-c", "./scripts/wait-for test-db:5432 && npm run test" ]
-
-
 FROM build AS pre-release
 
 WORKDIR /app
