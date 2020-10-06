@@ -81,11 +81,11 @@ jobs:
       id: prep
       run: |
         DOCKER_IMAGE=ghcr.io/${{ github.repository_owner }}/${{github.repository}}/api
-        TAGS="$DOCKER_IMAGE:sha-${GITHUB_SHA::8}"
+        SHA="sha-${GITHUB_SHA::8}"
         if [[ $GITHUB_REF == refs/pull/* ]]; then
-          TAGS="$TAGS,$DOCKER_IMAGE:pr-${{ github.event.number }}"
-        elif [ "${{ github.event_name }}" = "push" ]; then
-          TAGS="$TAGS:latest"
+          TAGS="$DOCKER_IMAGE:pr-${{ github.event.number }}-$SHA"
+        else [ "${{ github.event_name }}" = "push" ]; then
+          TAGS="$DOCKER_IMAGE:latest,$DOCKER_IMAGE:$SHA"
         fi
         echo ::set-output name=image::${TAGS}
 
