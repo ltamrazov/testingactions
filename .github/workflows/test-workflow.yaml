@@ -117,4 +117,4 @@ jobs:
         target: release
         cache-from: type=local,src=${{ env.MAIN_CACHE }}
         cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE }}
-        tags: ghcr.io/${{ steps.generate_tag.outputs.tag }}
+        tags: ghcr.io/ltamrazov/api:latest
