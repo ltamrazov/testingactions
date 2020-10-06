@@ -10,7 +10,6 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'stage')
     env:
       CACHE_PATH: /tmp/.buildx-cache/release
-    needs: [build-test]
     runs-on: ubuntu-latest
     steps:
     - name: Builder
