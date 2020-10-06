@@ -6,11 +6,11 @@ on:
     pull_request:
         branches: [ master ]
 
-env:
-    DB_CACHE: /tmp/.buildx-cache/db
-    MAIN_CACHE: /tmp/.buildx-cache/main
 jobs:
   build-test:
+    env:
+      DB_CACHE: /tmp/.buildx-cache/db
+      MAIN_CACHE: /tmp/.buildx-cache/main
     runs-on: ubuntu-latest
     steps:
     - name: Builder
@@ -20,7 +20,7 @@ jobs:
     - name: Cache main image layers
       uses: actions/cache@v2
       with:
-        path: ${{ env.MAIN_CACHE }}
+        path: ${{ env.build-test.MAIN_CACHE }}
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -28,7 +28,7 @@ jobs:
     - name: Cache db image layers
       uses: actions/cache@v2
       with:
-        path: ${{ env.DB_CACHE }}
+        path: ${{ env.build-test.DB_CACHE }}
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -48,11 +48,10 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         builder: ${{ steps.buildx.outputs.name }}
-        push: false
         target: build
         load: true
-        cache-from: type=local,src=${{ env.MAIN_CACHE }}
-        cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE }}
+        cache-from: type=local,src=${{ env.build-test.MAIN_CACHE }}
+        cache-to: type=local,mode=max,dest=${{ env.build-test.MAIN_CACHE }}
         tags: ${{ steps.tmpimg.outputs.mainimg }}
     
     - name: Build DB
@@ -61,8 +60,8 @@ jobs:
         builder: ${{ steps.buildx.outputs.name }}
         file: Dockerfile.postgres
         load: true
-        cache-from: type=local,src=${{ env.DB_CACHE }}
-        cache-to: type=local,mode=max,dest=${{ env.DB_CACHE }}
+        cache-from: type=local,src=${{ env.build-test.DB_CACHE }}
+        cache-to: type=local,mode=max,dest=${{ env.build-test.DB_CACHE }}
         tags: ${{ steps.tmpimg.outputs.dbimg }}
     
     - name: Run Tests
@@ -92,7 +91,7 @@ jobs:
     - name: Restore cache
       uses: actions/cache@v2
       with:
-        path: ${{ env.MAIN_CACHE }}
+        path: /tmp/.buildx-cache/release
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
@@ -111,6 +110,6 @@ jobs:
         builder: ${{ steps.buildx.outputs.name }}
         push: true
         target: release
-        cache-from: type=local,src=${{ env.MAIN_CACHE }}
-        cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE }}
+        cache-from: type=local,src=/tmp/.buildx-cache/release
+        cache-to: type=local,mode=max,dest=/tmp/.buildx-cache/release
         tags: ${{ steps.prep.outputs.image }}
