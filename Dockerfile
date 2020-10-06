@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # node_modules deps
-RUN apk add --no-cache --virtual .build-deps python make g++ perl-dev \
+RUN apk add --no-cache --virtual .build-deps python make g++ perl-dev && \
     # sqitch
     apk add --no-cache perl-dbd-pg perl-app-cpanminus postgresql-client && \
     cpanm App::Sqitch --no-wget --notest --quiet && \
