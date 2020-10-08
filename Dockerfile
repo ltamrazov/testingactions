@@ -32,7 +32,7 @@ COPY --from=build /app/node_modules /app/node_modules
 RUN npm prune --production
 
 
-FROM mhart/alpine-node:slim-12 as release
+FROM mhart/alpine-node:slim-12.18.3 as release
 
 RUN apk add --no-cache --virtual .build-deps build-base perl-dev  && \
     apk add --no-cache postgresql-client perl-app-cpanminus perl-dbd-pg && \
