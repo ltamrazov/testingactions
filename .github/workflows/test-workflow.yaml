@@ -5,7 +5,7 @@ on:
         branches: [ master ]
     pull_request:
         branches: [ master ]
-        types: [synchronize, opened, reopened, ready_for_review]
+        types: [synchronize]
 env:
   BUILD_IMAGE: "ghcr.io/${{github.repository}}:tmp.${{ github.sha }}"
 
