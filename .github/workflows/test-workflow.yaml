@@ -5,22 +5,29 @@ on:
         branches: [ master ]
     pull_request:
         branches: [ master ]
-        types: [synchronize, opened, ready_for_review]
+        types: [synchronize, opened, labeled]
 env:
   BUILD_IMAGE: "ghcr.io/${{github.repository}}:tmp.${{ github.sha }}"
 
 jobs:
   cancel-previous-workflows:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.5.0
         with:
           access_token: ${{ github.token }}
+  check-ready:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'ready') == false
+    steps:
+      - name: Should contain ready label
+        run: |
+          echo "Add 'ready' label to your PR when you are ready to have me run and pass."
+          exit 1
   build:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+    needs: check-ready
     env:
       MAIN_CACHE_PATH: /tmp/.buildx-cache/main  
     steps:
