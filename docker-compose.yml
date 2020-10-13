@@ -6,7 +6,7 @@ volumes:
 
 services:
     test-api:
-      image: ${API_IMAGE_TAG:-api:latest}
+      image: api:${API_IMAGE_VERSION:-latest}
       build:
         context: .
         target: build
