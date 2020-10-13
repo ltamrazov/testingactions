@@ -5,7 +5,7 @@ on:
         branches: [ master ]
     pull_request:
         branches: [ master ]
-        types: [synchronize, opened, labeled]
+        types: [synchronize, opened, labeled, unlabeled]
 env:
   BUILD_IMAGE: "ghcr.io/${{github.repository}}:pr-${{github.event.number}}.api.${{ github.sha }}"
 
