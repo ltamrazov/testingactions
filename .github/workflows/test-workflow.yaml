@@ -5,7 +5,7 @@ on:
         branches: [ master ]
     pull_request:
         branches: [ master ]
-        types: [synchronize, opened, labeled, unlabeled]
+        types: [synchronize, opened, ready_for_review, reopened]
 env:
   BUILD_IMAGE: "ghcr.io/${{github.repository}}:pr-${{github.event.number}}.api.${{ github.sha }}"
 
@@ -18,18 +18,8 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
-  check-ready:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fail if not ready
-        if: contains(github.event.pull_request.labels.*.name, 'ready') == false
-        run: |
-          echo "Add 'ready' label to your PR when you are ready to have me run and pass."
-          exit 1
-      - run: exit 0
   build:
     runs-on: ubuntu-latest
-    needs: check-ready
     env:
       MAIN_CACHE_PATH: /tmp/.buildx-cache/main  
     steps:
