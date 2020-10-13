@@ -18,7 +18,6 @@ jobs:
           access_token: ${{ github.token }}
   build:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'ready')
     env:
       MAIN_CACHE_PATH: /tmp/.buildx-cache/main  
     steps:
