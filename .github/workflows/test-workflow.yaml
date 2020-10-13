@@ -5,6 +5,7 @@ on:
         branches: [ master ]
     pull_request:
         branches: [ master ]
+        types: [synchronize, opened, reopened, ready_for_review]
 env:
   BUILD_IMAGE: "ghcr.io/${{github.repository}}:tmp.${{ github.sha }}"
 
@@ -18,6 +19,7 @@ jobs:
           access_token: ${{ github.token }}
   build:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     env:
       MAIN_CACHE_PATH: /tmp/.buildx-cache/main  
     steps:
