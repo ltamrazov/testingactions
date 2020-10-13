@@ -6,10 +6,10 @@ volumes:
 
 services:
     test-api:
-      image: ${API_IMAGE_TAG:-api}
+      image: api:${API_IMAGE_VERSION:-latest}
       build:
         context: .
-        target: test
+        target: build
       depends_on: 
         - test-db
       environment:
@@ -19,7 +19,7 @@ services:
         - DATABASE_PORT
         - DATABASE_HOST
     test-db:
-      image: ${DB_IMAGE_TAG:-db}
+      image: ${DB_IMAGE_TAG:-db:latest}
       container_name: actions-db
       build:
         context: .

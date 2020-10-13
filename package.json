@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "lint": "eslint src/**",
+    "prod": "node build/index.js",
     "build": "npm run clean && npm run compile",
     "clean": "rm -rf build/*",
     "compile": "tsc",
@@ -20,12 +22,20 @@
   },
   "homepage": "https://github.com/ltamrazov/testingactions#readme",
   "dependencies": {
-    "jest": "^26.4.2",
     "pg": "^8.3.3"
   },
   "devDependencies": {
     "@types/jest": "^26.0.14",
     "@types/pg": "^7.14.5",
+    "@typescript-eslint/eslint-plugin": "^4.4.0",
+    "@typescript-eslint/parser": "^4.4.0",
+    "eslint": "^7.10.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-prettier": "^6.12.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^24.1.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "jest": "^26.5.2",
     "typescript": "^4.0.3"
   }
 }

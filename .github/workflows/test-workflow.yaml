@@ -5,66 +5,126 @@ on:
         branches: [ master ]
     pull_request:
         branches: [ master ]
+        types: [synchronize, opened, ready_for_review]
+env:
+  BUILD_IMAGE: "ghcr.io/${{github.repository}}:tmp.${{ github.sha }}"
 
 jobs:
-  test:
+  cancel-previous-workflows:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ github.token }}
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    env:
+      MAIN_CACHE_PATH: /tmp/.buildx-cache/main  
     steps:
     - name: Builder
       uses: docker/setup-buildx-action@v1
       id: buildx
 
-    - name: Cache main image layers
+    - name: Restore build cache
       uses: actions/cache@v2
       with:
-        path: /tmp/.buildx-cache/main
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        path: ${{ env.MAIN_CACHE_PATH }}
+        key: ${{ runner.os }}-buildx-main-${{ github.sha }}
         restore-keys: |
-          ${{ runner.os }}-buildx-
+          ${{ runner.os }}-buildx-main-
     
-    - name: Cache db image layers
-      uses: actions/cache@v2
-      with:
-        path: /tmp/.buildx-cache/db
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-
-
-    - name: Checkout Code
-      uses: actions/checkout@v2
-    
-    - name: Determine Image Tag
-      id: generate_tag
+    - name: Temp tags
+      id: tmpimg
       run: |
-          _tag=latest
-          if [ "${{ github.event_name }}" == "pull_request" ]
-          then
-              _tag=pr-${{ github.event.number }}
-          fi
-          _full=test/dev:${_tag}
-          echo ::set-output name=tag::${_full}
+        MAIN_TAG="main-$GITHUB_SHA"
+        DB_TAG="db-$GITHUB_SHA"
+        echo ::set-output name=mainimg::${MAIN_TAG}
+        echo ::set-output name=dbimg::${DB_TAG}
 
-    - name: Build code
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.DOCKER_PAT }}
+
+    - name: Build source
       uses: docker/build-push-action@v2
       with:
         builder: ${{ steps.buildx.outputs.name }}
-        push: false
-        target: test
-        load: true
-        cache-from: type=local,src=/tmp/.buildx-cache/main
-        cache-to: type=local,mode=max,dest=/tmp/.buildx-cache/main
-        tags: ${{ steps.generate_tag.outputs.tag }}
+        target: build
+        push: true
+        cache-from: type=local,src=${{ env.MAIN_CACHE_PATH }}
+        cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE_PATH }}
+        tags: ${{ env.BUILD_IMAGE }}
+  
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      DB_CACHE_PATH: /tmp/.buildx-cache/db
+      DB_IMAGE_TAG: "tmp/db:${{ github.sha }}"
+    steps:
+    - name: Builder
+      uses: docker/setup-buildx-action@v1
+      id: buildx
     
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Restore db cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.DB_CACHE_PATH }}
+        key: ${{ runner.os }}-buildx-db-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-db-
+
     - name: Build DB
       uses: docker/build-push-action@v2
       with:
         builder: ${{ steps.buildx.outputs.name }}
         file: Dockerfile.postgres
         load: true
-        cache-from: type=local,src=/tmp/.buildx-cache/db
-        cache-to: type=local,mode=max,dest=/tmp/.buildx-cache/db
-        tags: db-${{ steps.generate_tag.outputs.tag }}
+        cache-from: type=local,src=${{ env.DB_CACHE_PATH }}
+        cache-to: type=local,mode=max,dest=${{ env.DB_CACHE_PATH }}
+        tags: ${{ env.DB_IMAGE_TAG }}
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.DOCKER_PAT }}
     
+    - name: Pull build
+      run: docker pull ${{ env.BUILD_IMAGE }}
+
     - name: Run Tests
       run: |
-        API_IMAGE_TAG=${{ steps.generate_tag.outputs.tag }} DB_IMAGE_TAG=db-${{ steps.generate_tag.outputs.tag }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api
+        API_IMAGE_TAG=${{ env.BUILD_IMAGE }} DB_IMAGE_TAG=${{ env.DB_IMAGE_TAG }} docker-compose -f docker-compose.yml --env-file .env.ci run test-api sh -c "./scripts/wait-for test-db:5432 && npm run test"
+  
+  lint:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.DOCKER_PAT }}
+    
+    - name: Pull build
+      run: docker pull ${{ env.BUILD_IMAGE }}
+
+    - name: Run lint
+      run: |
+        API_IMAGE_TAG=${{ env.BUILD_IMAGE }} docker-compose -f docker-compose.yml --env-file .env.ci run --no-deps test-api sh -c "npm run lint"
+    

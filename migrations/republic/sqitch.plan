@@ -1,0 +1,4 @@
+%syntax-version=1.0.0
+%project=postgres
+
+add_role_table 2020-02-07T16:14:02Z Fatmir Sukaliq <sukaliqfatmir@gmail.com> # this commit is going to create the users sids table\n:x

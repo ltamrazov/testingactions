@@ -1,27 +1,20 @@
 # Base is just light node config with common tools to building
 # for building npm packages
-FROM mhart/alpine-node:12.18.3 AS base
-
-RUN apk add --no-cache gcc python perl-utils g++ make perl-dev tzdata openssh git curl perl-dbd-pg postgresql-client
-RUN cpan App::cpanminus
-RUN cpanm App::Sqitch --no-wget --notest --quiet
-RUN rm -rf /root/.cpan
-
-
-# Build is the base with the installed npm packages
-FROM base AS build
+FROM mhart/alpine-node:12.18.3 AS build
 
 ENV TZ UTC
 
 WORKDIR /app
+
 COPY package.json package-lock.json ./
 
-RUN npm ci
-
-# test creates the build for testing and can be used later for prod
-FROM build AS test
-
-WORKDIR /app
+# node_modules deps
+RUN apk add --no-cache --virtual .build-deps python make g++ perl-dev && \
+    # sqitch
+    apk add --no-cache perl-dbd-pg perl-app-cpanminus postgresql-client && \
+    cpanm App::Sqitch --no-wget --notest --quiet && \
+    npm ci && \
+    apk del .build-deps
 
 COPY . .
 
@@ -29,23 +22,30 @@ RUN chmod -R u+x scripts
 
 RUN npm run build
 
-ENTRYPOINT [ "sh", "-c", "./scripts/wait-for test-db:5432 && npm run test" ]
-
-# dev adds an additional dependencies needed for container management
-# in our dev environment
-FROM test AS dev
-RUN apk add netcat-openbsd
+FROM build AS pre-release
 
 WORKDIR /app
 
-ENTRYPOINT [ "sh", "-c", "./scripts/wait-for test-db:5432 && npm run dev" ]
+COPY --from=build /app/package.json /app/package-lock.json ./
+COPY --from=build /app/node_modules /app/node_modules
 
-# release builds from a lighter node image and copies stuff over
-# from tested build
-FROM test AS release
+RUN npm prune --production
+
+
+FROM mhart/alpine-node:slim-12.18.3 as release
+
+RUN apk add --no-cache --virtual .build-deps build-base perl-dev  && \
+    apk add --no-cache postgresql-client perl-app-cpanminus perl-dbd-pg && \
+    cpanm App::Sqitch --no-wget --notest --quiet && \
+    apk del .build-deps
 
 ENV TZ UTC
 
 WORKDIR /app
 
-COPY --from=test /app/node_modules /app/build ./
+COPY --from=build /app/build /app/build
+
+COPY --from=pre-release /app/package.json /app/package-lock.json ./
+COPY --from=pre-release /app/node_modules /app/node_modules
+
+COPY migrations migrations

@@ -1,1 +1,2 @@
-console.log('RUNNING DEVelopment SERVER')
+const stuff = 'teasdfst';
+export default stuff;
