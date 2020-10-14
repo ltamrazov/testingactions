@@ -1,8 +1,6 @@
 name: ci
 
 on:
-    push:
-        branches: [ master ]
     pull_request:
         branches: [ master ]
         types: [synchronize, opened, ready_for_review, reopened]
@@ -19,6 +17,7 @@ jobs:
           access_token: ${{ github.token }}
 
   build:
+    if: true == false
     runs-on: ubuntu-latest
     env:
       MAIN_CACHE_PATH: /tmp/.buildx-cache/main  
@@ -126,4 +125,3 @@ jobs:
     - name: Run lint
       run: |
         API_IMAGE_TAG=${{ env.BUILD_IMAGE }} docker-compose -f docker-compose.yml --env-file .env.ci run --no-deps test-api sh -c "npm run lint"
-    
