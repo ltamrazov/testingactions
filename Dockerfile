@@ -10,9 +10,6 @@ COPY package.json package-lock.json ./
 
 # node_modules deps
 RUN apk add --no-cache --virtual .build-deps python make g++ perl-dev && \
-    # sqitch
-    apk add --no-cache perl-dbd-pg perl-app-cpanminus postgresql-client && \
-    cpanm App::Sqitch --no-wget --notest --quiet && \
     npm ci && \
     apk del .build-deps
 
@@ -34,11 +31,6 @@ RUN npm prune --production
 
 FROM mhart/alpine-node:slim-12.18.3 as release
 
-RUN apk add --no-cache --virtual .build-deps build-base perl-dev  && \
-    apk add --no-cache postgresql-client perl-app-cpanminus perl-dbd-pg && \
-    cpanm App::Sqitch --no-wget --notest --quiet && \
-    apk del .build-deps
-
 ENV TZ UTC
 
 WORKDIR /app
@@ -49,3 +41,5 @@ COPY --from=pre-release /app/package.json /app/package-lock.json ./
 COPY --from=pre-release /app/node_modules /app/node_modules
 
 COPY migrations migrations
+
+ENTRYPOINT [ "sh", "-c" ]

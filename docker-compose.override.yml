@@ -13,6 +13,8 @@ services:
         - ./jest.config.js:/app/jest.config.js:z
         - ./build:/app/build:z
         - ./migrations:/app/migrations:z
+      ports:
+          - 3000:3000
     test-db:
       restart: always
       volumes:
