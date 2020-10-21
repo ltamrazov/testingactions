@@ -42,4 +42,4 @@ COPY --from=pre-release /app/node_modules /app/node_modules
 
 COPY migrations migrations
 
-ENTRYPOINT [ "sh", "-c" ]
+CMD [ "sh", "-c", "node build/index.js" ]
