@@ -146,12 +146,14 @@ jobs:
       run: |
         DOCKER_IMAGE=ghcr.io/${{ github.repository }}
         SHA="sha-${GITHUB_SHA::8}"
+        UNIQUE_TAG="$DOCKER_IMAGE:$SHA"
         if [[ $GITHUB_REF == refs/pull/* ]]; then
           TAGS="$DOCKER_IMAGE:pr-${{ github.event.number }}-$SHA"
         else
           TAGS="$DOCKER_IMAGE:latest,$DOCKER_IMAGE:$SHA"
         fi
         echo ::set-output name=image::${TAGS}
+        echo ::set-output name=unique_tag::${UNIQUE_TAG}
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v1
@@ -169,3 +171,27 @@ jobs:
         cache-from: type=local,src=${{ env.MAIN_CACHE_PATH }}
         cache-to: type=local,mode=max,dest=${{ env.MAIN_CACHE_PATH }}
         tags: ${{ steps.prep.outputs.image }}
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: api
+        image: ${{ steps.prep.outputs.unique_tag }}
+
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: stage-fargate-StageAPIServiceCCAE641B-H0ZOcZPVUJXa
+        cluster: stage-fargate-StageAPIClusterB46E4A8B-5xJJR4vnME5f
+        wait-for-service-stability: true
+  
