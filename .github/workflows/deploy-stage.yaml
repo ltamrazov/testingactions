@@ -11,20 +11,25 @@ jobs:
       CACHE_PATH: /tmp/.buildx-cache/release
     runs-on: ubuntu-latest
     steps:
-    - name: Prepare
-      id: prep
-      run: |
-        DOCKER_IMAGE=ghcr.io/${{ github.repository }}
-        SHA="sha-${GITHUB_SHA::8}"
-        if [[ $GITHUB_REF == refs/pull/* ]]; then
-          TAGS="$DOCKER_IMAGE:pr-${{ github.event.number }}-$SHA"
-        else
-          TAGS="$DOCKER_IMAGE:latest,$DOCKER_IMAGE:$SHA"
-        fi
-        echo ::set-output name=image::${TAGS}
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
 
-    - name: Bump version and push tag
-      uses: anothrNick/github-tag-action@1.26.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        CUSTOM_TAG: release-${{ github.sha }}
+    - name: get last sha
+      id: deployedsha
+      run: |
+        DEPLOYED_SHA=""
+        if aws s3 cp s3://tm-graphqlservices-version/version.txt current-version 2>&1 | grep 404 > /dev/null; then 
+        else
+          echo ::set-output name=sha::$(cat current-version)
+        fi
+    - name: deploy
+      if: ${{ steps.deployedsha.outputs.sha == v-1 }}
+      run: echo "its the same!"
+
+    - name: skip
+      if: ${{ steps.deployedsha.outputs.sha == github.sha }}
+      run: echo "its github sha"
