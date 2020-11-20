@@ -8,7 +8,8 @@
     "build": "npm run clean && npm run compile",
     "clean": "rm -rf build/*",
     "compile": "tsc",
-    "test": "jest build"
+    "test": "jest build",
+    "start": "ts-node-dev src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -22,8 +23,13 @@
   },
   "homepage": "https://github.com/ltamrazov/testingactions#readme",
   "dependencies": {
+    "axios": "^0.21.0",
+    "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
-    "pg": "^8.3.3"
+    "express-http-proxy": "^1.6.2",
+    "jsonwebtoken": "^8.5.1",
+    "pg": "^8.3.3",
+    "ts-node-dev": "^1.0.0"
   },
   "devDependencies": {
     "@types/jest": "^26.0.14",

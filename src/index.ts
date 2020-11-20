@@ -1,11 +1,14 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
+const proxy = require('express-http-proxy');
+const { renewTokenMiddleware } = require('./middleware.ts');
 
 const app = express();
-const port = 3000;
+const port = 4000;
 
-app.get('/', (req, res) => {
-  res.send('Hello World! I have grown so so much!');
-});
+app.use(cookieParser());
+app.use(renewTokenMiddleware());
+app.use('/', proxy('http://localhost:5001'));
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
