@@ -28,9 +28,14 @@ jobs:
           echo ::set-output name=sha::$(cat current-version)
         fi
     - name: deploy
-      if: ${{ steps.deployedsha.outputs.sha == 'v-1' }}
-      run: echo "its the same!"
+      if: ${{ steps.deployedsha.outputs.sha != github.sha }}
+      run: echo "Deploying stuff"
 
     - name: skip
       if: ${{ steps.deployedsha.outputs.sha == github.sha }}
-      run: echo "its github sha"
+      run: echo "skipping deployment"
+
+    - name: update sha
+      run: |
+        echo ${{ github.sha }} > version.txt
+        aws s3 cp version.txt s3://tm-graphqlservices-version
