@@ -27,7 +27,7 @@ jobs:
           echo ::set-output name=sha::$(cat current-version)
         fi
     - name: deploy
-      if: ${{ steps.deployedsha.outputs.sha == "v-1" }}
+      if: ${{ steps.deployedsha.outputs.sha == 'v-1' }}
       run: echo "its the same!"
 
     - name: skip
