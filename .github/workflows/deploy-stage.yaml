@@ -22,7 +22,8 @@ jobs:
       id: deployedsha
       run: |
         DEPLOYED_SHA=""
-        if aws s3 cp s3://tm-graphqlservices-version/version.txt current-version 2>&1 | grep 404 > /dev/null; then 
+        if aws s3 cp s3://tm-graphqlservices-version/version.txt current-version 2>&1 | grep 404 > /dev/null; then
+          echo ::set-output name=sha::""
         else
           echo ::set-output name=sha::$(cat current-version)
         fi
