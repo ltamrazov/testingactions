@@ -12,11 +12,13 @@ jobs:
   cancel-previous-workflows:
     runs-on: ubuntu-latest
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.5.0
+      - name: Block concurrent deploys
+        uses: softprops/turnstyle@v1
         with:
-          access_token: ${{ github.token }}
-          abort-after-seconds: 3
+            abort-after-seconds: 1
+            poll-interval-seconds: 1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: sleep
         run: sleep 30
