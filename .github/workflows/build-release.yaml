@@ -3,7 +3,6 @@ name: release
 on:
   pull_request:
     branches: [ master ]
-    types: ['labeled']
 
 env:
   BUILD_IMAGE: "ghcr.io/${{github.repository}}:tmp.api.${{ github.sha }}"
@@ -17,7 +16,6 @@ jobs:
         uses: softprops/turnstyle@v1
         with:
             abort-after-seconds: 1
-            poll-interval-seconds: 1
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
