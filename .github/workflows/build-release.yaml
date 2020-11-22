@@ -17,19 +17,16 @@ jobs:
         uses: softprops/turnstyle@v1
         with:
             abort-after-seconds: 1
-            poll-interval-seconds: 1
+            poll-interval-seconds: 3
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: sleep
-        run: sleep 180
-
-  # build:
-  #   runs-on: ubuntu-latest
-  #   if: github.event.pull_request.draft == false
-  #   steps:
-  #   - name: sleep
-  #     run: sleep 30
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+    - name: sleep
+      run: sleep 180
 
   #   - name: Builder
   #     uses: docker/setup-buildx-action@v1
