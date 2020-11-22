@@ -12,6 +12,9 @@ env:
 jobs:
   cancel-previous-workflows:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+          service: [ 1, 2, 3]
     steps:
       - name: Block concurrent deploys
         uses: softprops/turnstyle@v1
@@ -20,14 +23,15 @@ jobs:
             poll-interval-seconds: 3
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: sleep
+        run: sleep 180
 
-  build:
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
-    needs: [cancel-previous-workflows]
-    steps:
-    - name: sleep
-      run: sleep 180
+
+  # build:
+  #   runs-on: ubuntu-latest
+  #   if: github.event.pull_request.draft == false
+  #   needs: [cancel-previous-workflows]
+  #   steps:
 
   #   - name: Builder
   #     uses: docker/setup-buildx-action@v1
