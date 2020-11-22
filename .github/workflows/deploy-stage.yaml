@@ -18,6 +18,11 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
+    - name: Check package version 
+      run: |
+        manifest=$(curl -X GET ghcr.io/${{github.repository}}/v2/{org}/{repo}/{image name}/manifests/$GITHUB_SHA -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.')
+        echo $manifest
+
     - name: get last sha
       id: deployedsha
       run: |

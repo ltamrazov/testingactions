@@ -1,9 +1,8 @@
 name: test-build
 
 on:
-    pull_request:
-        branches: [ master ]
-        types: [synchronize, opened, ready_for_review, reopened]
+  schedule:
+    - '* * * * *'
 env:
   BUILD_IMAGE: "ghcr.io/${{github.repository}}:pr-${{github.event.number}}.api.${{ github.sha }}"
 
