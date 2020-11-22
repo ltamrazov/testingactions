@@ -19,13 +19,14 @@ jobs:
             abort-after-seconds: 1
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: sleep
-        run: sleep 30
+
   
-  # another-job:
-  #   runs-on: ubuntu-latest
-  #   needs: [cancel-previous-workflows]
-  #   steps:
+  another-job:
+    runs-on: ubuntu-latest
+    needs: [cancel-previous-workflows]
+    steps:
+      - name: sleep
+        run: sleep 150
 
 
   # build:
